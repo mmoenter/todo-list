@@ -13,12 +13,12 @@ servers:
 tags:
 - name: Listenverwaltung
 paths:
-  /list/{list_id}:
+  /todo-list/{list_id}/entries:
     get:
       tags:
       - Listenverwaltung
       summary: Get all items from list
-      operationId: getList
+      operationId: getListItems
       parameters:
       - name: list_id
         in: path
@@ -38,6 +38,12 @@ paths:
         404:
           description: Invalid list id
           content: {}
+        405:
+          description: Wrong Method
+          content: {}
+        500:
+          description: internal server error
+          content: {}
     delete:
       tags:
       - Listenverwaltung
@@ -53,11 +59,20 @@ paths:
       responses:
         200:
           description: List was deleted
-          content: {}
+          content:
+            application/json:
+              schema:
+                type: string
         404:
           description: Invalid list id
           content: {}
-  /list:
+        405:
+          description: Wrong Method
+          content: {}
+        500:
+          description: internal server error
+          content: {}
+  /todo-list:
     post:
       tags:
       - Listenverwaltung
@@ -77,10 +92,168 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TodoList'
-        500:
+        400:
           description: List could not be added
           content: {}
-      x-codegen-request-body-name: body
+        405:
+          description: Wrong Method
+          content: {}
+        500:
+          description: internal server error
+          content: {}
+  /todo-list/{list_id}/entry:
+    post:
+      tags:
+      - Eintragsverwaltung
+      summary: Add new entry to a existing list
+      operationId: addEntry
+      parameters:
+      - name: list_id
+        in: path
+        description: list id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: List object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoList'
+        required: true
+      responses:
+        200:
+          description: Entry added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoEntry'
+        400:
+          description: Entry could not be added
+          content: {}
+        404:
+          description: Todo-List not found
+        405:
+          description: Wrong Method
+          content: {}
+        500:
+          description: internal server error
+          content: {}
+    put:
+      tags:
+      - Eintragsverwaltung
+      summary: Edit entry in a existing list
+      operationId: editEntry
+      parameters:
+      - name: list_id
+        in: path
+        description: list id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: List object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoList'
+        required: true
+      responses:
+        200:
+          description: Entry added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoEntry'
+        400:
+          description: Entry could not be added
+          content: {}
+        404:
+          description: Todo-List not found
+        405:
+          description: Wrong Method
+          content: {}
+        500:
+          description: internal server error
+          content: {}
+    delete:
+      tags:
+      - Eintragsverwaltung
+      summary: Delete entry from a list
+      operationId: removeEntry
+      parameters:
+      - name: list_id
+        in: path
+        description: list id
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Entry added
+          content:
+            application/json:
+              schema:
+                type: string
+        400:
+          description: Entry could not be deleted
+          content: {}
+        404:
+          description: Todo-List or Entry not found
+        405:
+          description: Wrong Method
+          content: {}
+        500:
+          description: internal server error
+          content: {}
+  /todo-lists:
+    get:
+      tags:
+      - Listenverwaltung
+      summary: Get all list
+      operationId: getLists
+      responses:
+        200:
+          description: List item returned
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/TodoList'
+        405:
+          description: Wrong Method
+          content: {}
+        500:
+          description: internal server error
+          content: {}
+  /todo-list/{list_id}:
+    get:
+      tags:
+      - Listenverwaltung
+      summary: Get all items from list
+      operationId: getList
+      parameters:
+      - name: list_id
+        in: path
+        description: list id
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: List item returned
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/TodoList'
+        404:
+          description: Invalid list id
+          content: {}
+        405:
+          description: Wrong Method
+          content: {}
+        500:
+          description: internal server error
+          content: {}
 components:
   schemas:
     TodoList:

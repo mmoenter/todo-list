@@ -1,10 +1,10 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-@app.route('/todo-lists', methods=['POST'])
+@app.route('/todo-list', methods=['POST'])
 
-def todoLists():
+def addTodoList():
     response = jsonify("todoList")
     return response
 
