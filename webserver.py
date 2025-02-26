@@ -14,6 +14,15 @@ from flask import Flask, request, jsonify, abort
 # initialize Flask server
 app = Flask(__name__)
 
+def getWrongMethod(): ##return error
+    return 400
+
+def getInternalServerError():
+    return 500
+
+def getResourceNotFound():
+    return 404
+
 # create unique id for lists, entries
 todo_list_1_id = '1318d3d1-d979-47e1-a225-dab1751dbe75'
 todo_list_2_id = '3062dc25-6b80-4315-bb1d-a7c86b014c65'
@@ -83,6 +92,16 @@ def add_new_list():
 @app.route('/lists', methods=['GET'])
 def get_all_lists():
     return jsonify(todo_lists)
+
+# define entpoint for all entries
+@app.route('/todo-list/<string:list_id>/entries', methods=['GET'])
+def get_all_entries(list_id):
+    if not request.method == 'GET':
+        return getWrongMethod()
+    if not list_id in todo_lists:
+        return getResourceNotFound()
+    todo_list = todo_lists[list_id]
+    return jsonify(todo_list.entries), 200
 
 
 if __name__ == '__main__':
