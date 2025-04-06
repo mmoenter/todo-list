@@ -168,6 +168,7 @@ paths:
         500:
           description: internal server error
           content: {}
+  /todo-list/{list_id}/entry/{entry_id}:
     put:
       tags:
       - Eintragsverwaltung
@@ -180,12 +181,18 @@ paths:
         required: true
         schema:
           type: string
+      - name: entry_id
+        in: path
+        description: entry id
+        required: true
+        schema:
+          type: string
       requestBody:
         description: List object
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TodoList'
+              $ref: '#/components/schemas/TodoEntry'
         required: true
       responses:
         200:
@@ -214,6 +221,12 @@ paths:
       - name: list_id
         in: path
         description: list id
+        required: true
+        schema:
+          type: string
+      - name: entry_id
+        in: path
+        description: entry id
         required: true
         schema:
           type: string
