@@ -14,14 +14,23 @@ from flask import Flask, request, jsonify, abort
 # initialize Flask server
 app = Flask(__name__)
 
-def getWrongMethod(): ##return error
-    return 400
+def getListOrFail(list_id):
+    list_item = None
+    for l in todo_lists:
+        if l['id'] == list_id:
+            list_item = l
+            break
+    if not list_item: return False
+    return list_item
 
-def getInternalServerError():
-    return 500
-
-def getResourceNotFound():
-    return 404
+def getEntryOrFail(list_id, entry_id):
+    entry_item = None
+    for e in todo_lists[entry_id]:
+        if e['id'] == list_id:
+            entry_item = e
+            break
+    if not entry_item: return False
+    return entry_item
 
 # create unique id for lists, entries
 todo_list_1_id = '1318d3d1-d979-47e1-a225-dab1751dbe75'
@@ -54,14 +63,10 @@ def apply_cors_header(response):
     return response
 
 # define endpoint for getting and deleting existing todo lists
-@app.route('/list/<list_id>', methods=['GET', 'DELETE'])
+@app.route('/todo-list/<string:list_id>', methods=['GET', 'DELETE'])
 def handle_list(list_id):
     # find todo list depending on given list id
-    list_item = None
-    for l in todo_lists:
-        if l['id'] == list_id:
-            list_item = l
-            break
+    list_item = getListOrFail(list_id)
     # if the given list id is invalid, return status code 404
     if not list_item:
         abort(404)
@@ -77,7 +82,7 @@ def handle_list(list_id):
 
 
 # define endpoint for adding a new list
-@app.route('/list', methods=['POST'])
+@app.route('/todo-list', methods=['POST'])
 def add_new_list():
     # make JSON from POST data (even if content type is not set correctly)
     new_list = request.get_json(force=True)
@@ -89,20 +94,51 @@ def add_new_list():
 
 
 # define endpoint for getting all lists
-@app.route('/lists', methods=['GET'])
+@app.route('/todo-lists', methods=['GET'])
 def get_all_lists():
-    return jsonify(todo_lists)
+    return jsonify(todo_lists), 200
 
 # define entpoint for all entries
 @app.route('/todo-list/<string:list_id>/entries', methods=['GET'])
 def get_all_entries(list_id):
-    if not request.method == 'GET':
-        return getWrongMethod()
-    if not list_id in todo_lists:
-        return getResourceNotFound()
-    todo_list = todo_lists[list_id]
-    return jsonify(todo_list.entries), 200
+    list_item = getListOrFail(list_id)
+    if not list_item:
+        abort(404)
+    todo_entries = []
+    for todo in todos:
+        if todo['list'] == list_id:
+            todo_entries.append(todo)
+    return jsonify(todo_entries), 200
 
+@app.route('/todo-list/<string:list_id>/entry', methods=['POST'])
+def create_entry(list_id):
+    list_item = getListOrFail(list_id)
+    if not list_item:
+        abort(404)
+    new_entry = request.get_json(force=True)
+    new_entry['id'] = uuid.uuid4()
+    todos.append(new_entry)
+    return jsonify(new_entry)
+
+@app.route('/todo-list/<string:list_id>/entry/<string:entry_id>', methods=['PUT', 'DELETE'])
+def handle_entry(list_id, entry_id):
+    list_item = getListOrFail(list_id)
+    if not list_item:
+        abort(404)
+    entry_item = getEntryOrFail(entry_id)
+    if not entry_item:
+        abort(404)
+    if request.method == 'PUT':
+        data = request.get_json(force=True)
+        entry_item.update({
+            'name': data.get('name', entry_item['name']),
+            'description': data.get('description', entry_item['description']),
+            'user_id': data.get('user_id', entry_item['user_id'])
+        })
+        return jsonify(entry_item), 200
+    elif request.method == 'DELETE':
+        todos.remove(entry_item)
+        return jsonify("Entry deleted"), 200
 
 if __name__ == '__main__':
     # start Flask server
